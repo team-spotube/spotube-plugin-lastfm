@@ -4,6 +4,8 @@ import app.cash.zipline.Zipline
 import dev.krtirtho.plugin_interfaces.core.runPluginInitialized
 import dev.krtirtho.plugin_interfaces.host_apis.HttpClientAPI
 import dev.krtirtho.plugin_interfaces.host_apis.HttpClientAPI_SERVICE_NAME
+import dev.krtirtho.plugin_interfaces.host_apis.CryptoAPI
+import dev.krtirtho.plugin_interfaces.host_apis.CryptoAPI_SERVICE_NAME
 import dev.krtirtho.plugin_interfaces.host_apis.PersistedStorageAPI
 import dev.krtirtho.plugin_interfaces.host_apis.PersistedStorageAPI_SERVICE_NAME
 import dev.krtirtho.plugin_interfaces.host_apis.WebViewAPI
@@ -23,11 +25,12 @@ private val zipline by lazy { Zipline.get() }
 fun main() {
     runPluginInitialized {
         val httpClient = zipline.take<HttpClientAPI>(HttpClientAPI_SERVICE_NAME)
+        val crypto = zipline.take<CryptoAPI>(CryptoAPI_SERVICE_NAME)
         val webview = zipline.take<WebViewAPI>(WebViewAPI_SERVICE_NAME)
         val storage = zipline.take<PersistedStorageAPI>(PersistedStorageAPI_SERVICE_NAME)
 
         val client = Lastfm(httpClient)
-        zipline.bind<CoreAPI>(CoreAPI_SERVICE_NAME, RealCoreAPI(webview, storage, client))
-        zipline.bind<ScrobbleAPI>(ScrobbleAPI_SERVICE_NAME, RealScrobbleAPI())
+        zipline.bind<CoreAPI>(CoreAPI_SERVICE_NAME, RealCoreAPI(webview, storage, client, crypto))
+        zipline.bind<ScrobbleAPI>(ScrobbleAPI_SERVICE_NAME, RealScrobbleAPI(client, storage, crypto))
     }
 }

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connect Last.fm</title>
+  <!-- LASTFM_CSS -->
+</head>
+<body>
+  <main class="card">
+    <div class="brand">Last.fm</div>
+    <h1>Connect your account</h1>
+    <p class="intro">Your password is used once to request a Last.fm session and is never saved.</p>
+    <form id="login-form">
+      <label for="username">Last.fm username</label>
+      <input id="username" name="username" type="text" autocomplete="username" required>
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+      <p id="error" class="error" role="alert" aria-live="polite"></p>
+      <button id="submit" type="submit">Connect Last.fm</button>
+    </form>
+    <p class="footnote">Your credentials are sent directly to Last.fm over HTTPS to create a session.</p>
+  </main>
+  <!-- LASTFM_JS -->
+</body>
+</html>

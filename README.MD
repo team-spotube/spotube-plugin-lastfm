@@ -10,7 +10,16 @@ This project was scaffolded from the Spotube KMP plugin template. API adapters f
 ./gradlew :spotube_plugin_lastfm:packageDevelopmentPlugin
 ```
 
-Plugin metadata is declared through the `spotubePlugin {}` Gradle DSL. Add provider-specific credentials/configuration only if needed by your implementation, and keep secrets out of source control.
+Before building, add the Last.fm application credentials to the repository-root `local.properties` file (never commit it):
+
+```properties
+LASTFM_API_KEY=your_lastfm_api_key
+LASTFM_API_SECRET=your_lastfm_api_secret
+```
+
+The build-time source generator XOR-obfuscates these values in the generated plugin bundle. The login form asks users only for their Last.fm username and password. Because the plugin runs on the user's device, obfuscation cannot make the application credentials secret from a determined reverse engineer; use a trusted server to protect them from extraction if that is a requirement.
+
+Plugin metadata is declared through the `spotubePlugin {}` Gradle DSL.
 
 ## License
 
