@@ -112,7 +112,7 @@ spotubePlugin {
     version = "0.1.0"
     apiVersion = "0.0.1"
     description = "LastFM scrobbling for Spotube"
-    author = "cc.spotube.lastfm"
+    author = "Spotube Team"
     capabilities = listOf(
         PluginCapability.NETWORK_REQUESTS,
         PluginCapability.PERSISTENT_STORAGE,
