@@ -1,13 +1,13 @@
-package cc.spotube.lastfm.spotube_plugin_lastfm.plugin_apis.scrobble
+package org.spotube.lastfm.spotube_plugin_lastfm.plugin_apis.scrobble
 
-import cc.spotube.lastfm.spotube_plugin_lastfm.core.Lastfm
-import dev.krtirtho.plugin_interfaces.host_apis.CryptoAPI
-import dev.krtirtho.plugin_interfaces.host_apis.HashAlgorithms
-import dev.krtirtho.plugin_interfaces.host_apis.HttpMethod
-import dev.krtirtho.plugin_interfaces.host_apis.PersistedStorageAPI
-import dev.krtirtho.plugin_interfaces.host_apis.WebViewAPI
-import dev.krtirtho.plugin_interfaces.plugin_apis.core.CoreAPI
-import dev.krtirtho.plugin_interfaces.plugin_apis.core.PluginUpdateInfo
+import org.spotube.lastfm.spotube_plugin_lastfm.core.Lastfm
+import org.spotube.plugin_interfaces.host_apis.CryptoAPI
+import org.spotube.plugin_interfaces.host_apis.HashAlgorithms
+import org.spotube.plugin_interfaces.host_apis.HttpMethod
+import org.spotube.plugin_interfaces.host_apis.PersistedStorageAPI
+import org.spotube.plugin_interfaces.host_apis.WebViewAPI
+import org.spotube.plugin_interfaces.plugin_apis.core.CoreAPI
+import org.spotube.plugin_interfaces.plugin_apis.core.PluginUpdateInfo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart

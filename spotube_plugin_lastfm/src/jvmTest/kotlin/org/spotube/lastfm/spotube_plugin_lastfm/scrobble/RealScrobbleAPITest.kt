@@ -1,4 +1,4 @@
-package cc.spotube.lastfm.spotube_plugin_lastfm.scrobble
+package org.spotube.lastfm.spotube_plugin_lastfm.scrobble
 
 import kotlin.test.Test
 

@@ -1,5 +1,5 @@
-import dev.krtirtho.PluginAbility
-import dev.krtirtho.PluginCapability
+import org.spotube.PluginAbility
+import org.spotube.PluginCapability
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputFile
@@ -59,7 +59,7 @@ abstract class GenerateLastfmLoginPage : DefaultTask() {
         outputFile.get().asFile.apply {
             parentFile.mkdirs()
             writeText(
-                """package cc.spotube.lastfm.spotube_plugin_lastfm.plugin_apis.scrobble
+                """package org.spotube.lastfm.spotube_plugin_lastfm.plugin_apis.scrobble
 
 internal const val LASTFM_LOGIN_PAGE = "$escapedPage"
 
@@ -178,7 +178,7 @@ tasks.named("compileKotlinJs").configure {
 }
 
 zipline {
-    mainFunction.set("cc.spotube.lastfm.spotube_plugin_lastfm.main")
+    mainFunction.set("org.spotube.lastfm.spotube_plugin_lastfm.main")
 }
 
 plugins.withType<YarnPlugin> {

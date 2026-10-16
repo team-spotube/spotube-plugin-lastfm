@@ -20,4 +20,4 @@ Kotlin Multiplatform Spotube plugin generated from the Spotube plugin template. 
 - `jvmTest`: JVM integration tests
 - `spotubePlugin {}` in the module Gradle build: Spotube plugin metadata
 
-Package namespace: `cc.spotube.lastfm.spotube_plugin_lastfm`
+Package namespace: `org.spotube.lastfm.spotube_plugin_lastfm`

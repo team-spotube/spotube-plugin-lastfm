@@ -1,4 +1,4 @@
-package cc.spotube.lastfm.spotube_plugin_lastfm.test_utils
+package org.spotube.lastfm.spotube_plugin_lastfm.test_utils
 
 object TestFixture {
     // TODO Add shared test fixtures after the provider API is selected.
