@@ -1,0 +1,125 @@
+name: Publish Plugin
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Where should this build go?
+        type: choice
+        options:
+          - stable
+          - nightly
+        default: stable
+
+concurrency:
+  group: publish-${{ inputs.channel }}
+  cancel-in-progress: true
+
+env:
+  MODULE: spotube_plugin_lastfm
+
+jobs:
+  build:
+    name: Build .smplug
+    runs-on: ubuntu-latest
+    outputs:
+      plugin-version: ${{ steps.meta.outputs.plugin-version }}
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v7
+
+      - name: Install JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Configure Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Fetch Spotube Gradle plugin sources
+        uses: actions/checkout@v7
+        with:
+          repository: team-spotube/gradle-plugin
+          path: .deps/gradle-plugin
+
+      - name: Install Spotube Gradle plugin into ~/.m2
+        working-directory: .deps/gradle-plugin
+        run: |
+          chmod +x gradlew
+          ./gradlew publishToMavenLocal
+
+      - name: Provide Last.fm credentials
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_API_SECRET: ${{ secrets.LASTFM_API_SECRET }}
+        run: |
+          if [ -z "$LASTFM_API_KEY" ] || [ -z "$LASTFM_API_SECRET" ]; then
+            echo "::warning::LASTFM_API_KEY / LASTFM_API_SECRET secrets are not set; the plugin will be built without credentials."
+          fi
+          {
+            echo "LASTFM_API_KEY=$LASTFM_API_KEY"
+            echo "LASTFM_API_SECRET=$LASTFM_API_SECRET"
+          } > local.properties
+
+      - name: Package production plugin
+        run: |
+          chmod +x gradlew
+          ./gradlew ":$MODULE:packageProductionPlugin"
+
+      - name: Extract plugin version
+        id: meta
+        run: |
+          ver=$(awk '/spotubePlugin[[:space:]]*\{/ { inside = 1 }
+                     inside && $1 == "version" { gsub(/"/, "", $3); print $3; exit }' "$MODULE/build.gradle.kts")
+          if [ -z "$ver" ]; then
+            echo "::error::Could not find version inside spotubePlugin {} block"
+            exit 1
+          fi
+          echo "plugin-version=$ver" >> "$GITHUB_OUTPUT"
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: lastfm-smplug
+          path: ${{ env.MODULE }}/build/distributions/plugin-production.smplug
+          if-no-files-found: error
+
+  release:
+    name: GitHub release (${{ inputs.channel }})
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download build output
+        uses: actions/download-artifact@v4
+        with:
+          name: lastfm-smplug
+
+      - name: Name the asset
+        run: mv plugin-production.smplug spotube-plugin-lastfm.smplug
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          CHANNEL: ${{ inputs.channel }}
+          VERSION: ${{ needs.build.outputs.plugin-version }}
+        run: |
+          if [ "$CHANNEL" = "nightly" ]; then
+            # Recreate the nightly tag so it always points at the commit that was just built
+            gh release delete nightly --yes --cleanup-tag || true
+            gh release create nightly spotube-plugin-lastfm.smplug \
+              --target "$GITHUB_SHA" \
+              --title "Nightly ($(date -u +%Y-%m-%d))" \
+              --notes "Built from ${GITHUB_SHA::7}. Not a stable release." \
+              --prerelease
+          else
+            gh release create "v$VERSION" spotube-plugin-lastfm.smplug \
+              --target "$GITHUB_SHA" \
+              --title "v$VERSION" \
+              --generate-notes
+          fi
