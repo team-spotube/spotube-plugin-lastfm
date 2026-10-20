@@ -38,18 +38,6 @@ jobs:
       - name: Configure Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Fetch Spotube Gradle plugin sources
-        uses: actions/checkout@v7
-        with:
-          repository: team-spotube/gradle-plugin
-          path: .deps/gradle-plugin
-
-      - name: Install Spotube Gradle plugin into ~/.m2
-        working-directory: .deps/gradle-plugin
-        run: |
-          chmod +x gradlew
-          ./gradlew publishToMavenLocal
-
       - name: Provide Last.fm credentials
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
