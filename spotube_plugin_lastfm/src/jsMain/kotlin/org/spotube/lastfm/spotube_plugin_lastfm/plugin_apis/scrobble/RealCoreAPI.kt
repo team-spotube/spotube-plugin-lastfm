@@ -21,7 +21,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.swiftzer.semver.SemVer
@@ -43,8 +45,46 @@ class RealCoreAPI(
         }
     }
 
-    override suspend fun checkPluginUpdates(currentVersion: SemVer): PluginUpdateInfo? =
-        null
+    override suspend fun checkPluginUpdates(currentVersion: SemVer): PluginUpdateInfo? {
+        val response = try {
+            service.httpClientAPI.request(
+                method = HttpMethod.Get,
+                url = GITHUB_LATEST_RELEASE_URL,
+                requestHeaders = mapOf(
+                    "Accept" to "application/vnd.github+json",
+                    "X-GitHub-Api-Version" to "2022-11-28",
+                    "User-Agent" to "spotube-plugin-lastfm",
+                ),
+                body = null,
+            )
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            return null
+        }
+        if (response.statusCode !in 200..299) return null
+
+        val release = runCatching { Json.parseToJsonElement(response.body.orEmpty()).jsonObject }
+            .getOrNull()
+            ?: return null
+        val tag = release.text("tag_name") ?: return null
+        val version = RELEASE_TAG.matchEntire(tag)?.groupValues?.get(1)
+            ?.let { runCatching { SemVer.parse(it) }.getOrNull() }
+            ?: return null
+        if (version <= currentVersion) return null
+
+        val downloadUrl = release["assets"]?.jsonArray
+            ?.map { it.jsonObject }
+            ?.firstOrNull { it.text("name") == RELEASE_ASSET_NAME }
+            ?.text("browser_download_url")
+            ?: return null
+
+        return PluginUpdateInfo(
+            latestVersion = version.toString(),
+            directDownloadUrl = downloadUrl,
+            releaseNotes = release.text("body") ?: "See ${release.text("html_url").orEmpty()}",
+        )
+    }
 
     override fun supportMarkdownText(currentVersion: SemVer): String =
         "This plugin sends scrobbles to Last.fm. A Last.fm account and Last.fm API credentials are required."
@@ -147,7 +187,10 @@ class RealCoreAPI(
             ?: error("Last.fm did not return a session key")
     }
 
-    private fun kotlinx.serialization.json.JsonObject.requiredText(key: String): String =
+    private fun JsonObject.text(key: String): String? =
+        this[key]?.jsonPrimitive?.contentOrNull
+
+    private fun JsonObject.requiredText(key: String): String =
         this[key]?.jsonPrimitive?.contentOrNull?.takeIf(String::isNotBlank)
             ?: error("Please provide your Last.fm $key")
 
@@ -200,5 +243,9 @@ class RealCoreAPI(
     private companion object {
         const val LASTFM_API_URL = "https://ws.audioscrobbler.com/2.0/"
         const val LOGIN_MESSAGE_TYPE = "lastfm-login"
+        const val GITHUB_LATEST_RELEASE_URL =
+            "https://api.github.com/repos/team-spotube/spotube-plugin-lastfm/releases/latest"
+        const val RELEASE_ASSET_NAME = "spotube-plugin-lastfm.smplug"
+        val RELEASE_TAG = Regex("""^v(\d+\.\d+\.\d+.*)$""")
     }
 }
